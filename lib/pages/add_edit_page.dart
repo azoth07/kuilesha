@@ -23,6 +23,7 @@ class _AddEditPageState extends State<AddEditPage> {
   late TextEditingController _categoryCtrl;
   late TextEditingController _descCtrl;
   late DateTime _date;
+  final _descFocus = FocusNode();
 
   bool get _isEditing => widget.transaction != null;
 
@@ -57,7 +58,15 @@ class _AddEditPageState extends State<AddEditPage> {
     _amountCtrl.dispose();
     _categoryCtrl.dispose();
     _descCtrl.dispose();
+    _descFocus.dispose();
     super.dispose();
+  }
+
+  // Force reconnect IME — fixes WeChat IME freezing issue
+  Future<void> _reconnectIme() async {
+    _descFocus.unfocus();
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) _descFocus.requestFocus();
   }
 
   @override
@@ -187,9 +196,11 @@ class _AddEditPageState extends State<AddEditPage> {
   Widget _buildDescriptionField() {
     return TextFormField(
       controller: _descCtrl,
+      focusNode: _descFocus,
       minLines: 2,
       maxLines: 5,
       keyboardType: TextInputType.multiline,
+      onTap: _reconnectIme,
       style: const TextStyle(color: Colors.white),
       decoration: const InputDecoration(
         labelText: '备注',
